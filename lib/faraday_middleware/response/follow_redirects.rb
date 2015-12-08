@@ -49,6 +49,7 @@ module FaradayMiddleware
     #
     # options - An options Hash (default: {}):
     #           :limit               - A Numeric redirect limit (default: 3)
+    #           :enable_query_params - Check if original query params included and append if not
     #           :standards_compliant - A Boolean indicating whether to respect
     #                                  the HTTP spec when following 301/302
     #                                  (default: false)
@@ -86,7 +87,12 @@ module FaradayMiddleware
     end
 
     def update_env(env, request_body, response)
-      env[:url] += safe_escape(response['location'])
+      if enable_query_params
+        query_params = URI.parse(env.url.to_s).query                      
+        env[:url] += safe_escape(response['location'] + '?' + query_params) unless response['location'].match(query_params)
+      else
+        env[:url] += safe_escape(response['location'])
+      end  
 
       if convert_to_get?(response)
         env[:method] = :get
@@ -111,6 +117,10 @@ module FaradayMiddleware
 
     def standards_compliant?
       @options.fetch(:standards_compliant, false)
+    end
+
+    def enable_query_params
+      @options.fetch(:enable_query_params)
     end
 
     # Internal: escapes unsafe characters from an URL which might be a path
