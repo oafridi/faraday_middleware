@@ -120,7 +120,7 @@ module FaradayMiddleware
     end
 
     def enable_query_params
-      @options.fetch(:enable_query_params)
+      @options.fetch(:enable_query_params, false)
     end
 
     # Internal: escapes unsafe characters from an URL which might be a path
